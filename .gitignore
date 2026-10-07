@@ -18,3 +18,7 @@ pygbag-build/
 .idea/
 .vscode/
 .DS_Store
+
+# Herramientas locales de IA
+.claude/
+openspec/
