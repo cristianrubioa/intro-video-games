@@ -4,7 +4,7 @@ import esper
 from src.ecs.systems.s_movement import system_movement
 from src.ecs.systems.s_rendering import system_rendering
 from src.ecs.systems.s_screen_bounce import system_screen_bounce
-from src.create.prefab_creator import crear_cuadrado
+from src.create.prefab_creator import create_square
 
 
 class GameEngine:
@@ -29,7 +29,7 @@ class GameEngine:
         self._clean()
 
     def _create(self):
-        crear_cuadrado(
+        create_square(
             self.ecs_world,
             pygame.Vector2(50, 50),
             pygame.Vector2(150, 300),
