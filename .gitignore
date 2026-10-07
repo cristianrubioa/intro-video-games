@@ -1,0 +1,20 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+build/
+dist/
+
+# Entornos virtuales
+.venv/
+venv/
+env/
+
+# Empaquetado (pyinstaller / pygbag)
+*.spec
+pygbag-build/
+
+# Editores y sistema
+.idea/
+.vscode/
+.DS_Store

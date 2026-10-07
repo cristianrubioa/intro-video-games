@@ -1,0 +1,19 @@
+[tool.poetry]
+name = "intro-video-games"
+version = "0.1.0"
+description = "Introducción a videojuegos con ECS - MISW-4407"
+package-mode = false
+
+[tool.poetry.dependencies]
+python = ">=3.12.2,<3.13"
+pygame-ce = "^2.5.8"
+esper = "2.5"
+
+
+[tool.poetry.group.dev.dependencies]
+pygbag = "^0.9.3"
+pyinstaller = "^6.22.3"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
