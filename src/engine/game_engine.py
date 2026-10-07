@@ -49,10 +49,11 @@ class GameEngine:
         self.bg_color = (window["bg_color"]["r"], window["bg_color"]["g"], window["bg_color"]["b"])
         self.framerate = window["framerate"]
 
+        events = [{**event, "fired": False} for event in level["enemy_spawn_events"]]
         spawner_entity = self.ecs_world.create_entity()
         self.ecs_world.add_component(
             spawner_entity,
-            CEnemySpawner(level["enemy_spawn_events"]),
+            CEnemySpawner(events),
         )
 
     def _load_json(self, file_name: str):
