@@ -1,0 +1,7 @@
+{
+    "enemy_spawn_events": [
+        {"time": 2.0, "enemy_type": "Big", "position": {"x": -30, "y": -30}},
+        {"time": 0.5, "enemy_type": "Zero", "position": {"x": 100, "y": 100}},
+        {"time": 0.5, "enemy_type": "Zero", "position": {"x": 50, "y": 50}}
+    ]
+}

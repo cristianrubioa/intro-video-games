@@ -1,0 +1,14 @@
+{
+    "Zero": {
+        "size": {"x": 0, "y": 0},
+        "color": {"r": 255, "g": 0, "b": 0},
+        "velocity_min": 0,
+        "velocity_max": 0
+    },
+    "Big": {
+        "size": {"x": 50, "y": 50},
+        "color": {"r": 0, "g": 255, "b": 0},
+        "velocity_min": 50,
+        "velocity_max": 50
+    }
+}
