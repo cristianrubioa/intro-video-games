@@ -1,3 +1,9 @@
 {
+    "player_spawn": {
+        "position": {
+            "x": 180,
+            "y": 180
+        }
+    },
     "enemy_spawn_events": []
 }
