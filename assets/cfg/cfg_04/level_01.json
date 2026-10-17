@@ -1,0 +1,10 @@
+{
+    "player_spawn": {
+        "position": {
+            "x": 150,
+            "y": 100
+        },
+        "max_bullets": 4
+    },
+    "enemy_spawn_events": []
+}

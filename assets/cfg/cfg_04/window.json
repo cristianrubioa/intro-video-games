@@ -1,0 +1,13 @@
+{
+    "title": "Sin enemigos",
+    "size": {
+        "w": 300,
+        "h": 200
+    },
+    "bg_color": {
+        "r": 20,
+        "g": 20,
+        "b": 40
+    },
+    "framerate": 60
+}
