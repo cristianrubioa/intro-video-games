@@ -3,7 +3,8 @@
         "position": {
             "x": 100,
             "y": 100
-        }
+        },
+        "max_bullets": 5
     },
     "enemy_spawn_events": [
         {"time": 2.0, "enemy_type": "Big", "position": {"x": -30, "y": -30}},

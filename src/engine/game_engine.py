@@ -13,6 +13,7 @@ from src.ecs.systems.s_rendering import system_rendering
 from src.ecs.systems.s_input_player import system_input_player
 from src.ecs.systems.s_collision_player_enemy import system_collisions_player_enemy
 from src.ecs.systems.s_screen_bounce import system_screen_bounce
+from src.ecs.systems.s_player_bounds import system_player_bounds
 from src.ecs.components.c_velocity import CVelocity
 from src.ecs.components.c_input_command import CInputCommand
 from src.ecs.components.c_input_command import CommandPhase
@@ -79,6 +80,7 @@ class GameEngine:
         system_enemy_spawner(self.ecs_world, self.delta_time, self.enemies)
         system_movement(self.ecs_world, self.delta_time)
         system_screen_bounce(self.ecs_world, self.screen)
+        system_player_bounds(self.ecs_world, self.screen)
         system_collisions_player_enemy(self.ecs_world, self.player_entity, self.level)
         self.ecs_world._clear_dead_entities()
 

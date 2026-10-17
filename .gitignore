@@ -22,3 +22,6 @@ pygbag-build/
 # Herramientas locales de IA
 .claude/
 openspec/
+
+# Scripts locales de verificación (no forman parte de la entrega)
+scripts/
