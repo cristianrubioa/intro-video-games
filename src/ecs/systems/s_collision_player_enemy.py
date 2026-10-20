@@ -11,10 +11,10 @@ def system_collisions_player_enemy(
     components = world.get_components(CSurface, CTransform, CTagEnemy)
     p1_t = world.component_for_entity(player_entity, CTransform)
     p1_s = world.component_for_entity(player_entity, CSurface)
-    p1_rect = p1_s.surf.get_rect(topleft=p1_t.pos)
+    p1_rect = CSurface.get_area_relative(p1_s.area, p1_t.pos)
 
     for enemy_entity, (c_s, c_t, _) in components:
-        ene_rect = c_s.surf.get_rect(topleft=c_t.pos)
+        ene_rect = CSurface.get_area_relative(c_s.area, c_t.pos)
         if ene_rect.colliderect(p1_rect):
             world.delete_entity(enemy_entity)
             p1_t.pos.x = level_cfg["player_spawn"]["position"]["x"] - p1_s.surf.get_width() / 2

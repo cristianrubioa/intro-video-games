@@ -10,11 +10,11 @@ def system_collision_bullet_enemy(world: esper.World):
     bullets = list(world.get_components(CSurface, CTransform, CTagBullet))
     enemies = list(world.get_components(CSurface, CTransform, CTagEnemy))
 
-    for bullet_entity, (b_s, b_t, _) in bullets:
-        bullet_rect = b_s.surf.get_rect(topleft=b_t.pos)
+    for bullet_entity, (c_s, c_t, _) in bullets:
+        bullet_rect = CSurface.get_area_relative(c_s.area, c_t.pos)
 
-        for enemy_entity, (e_s, e_t, _) in enemies:
-            enemy_rect = e_s.surf.get_rect(topleft=e_t.pos)
+        for enemy_entity, (c_b_s, c_b_t, _) in enemies:
+            enemy_rect = CSurface.get_area_relative(c_b_s.area, c_b_t.pos)
             if bullet_rect.colliderect(enemy_rect):
                 world.delete_entity(bullet_entity)
                 world.delete_entity(enemy_entity)

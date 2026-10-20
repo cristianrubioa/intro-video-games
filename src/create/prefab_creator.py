@@ -12,6 +12,8 @@ from src.ecs.components.tags.c_tag_enemy import CTagEnemy
 from src.ecs.components.tags.c_tag_player import CTagPlayer
 from src.ecs.components.tags.c_tag_bullet import CTagBullet
 from src.ecs.components.c_input_command import CInputCommand
+from src.ecs.components.c_animation import CAnimation
+from src.ecs.components.c_player_state import CPlayerState
 
 def create_square(
     ecs_world: esper.World,
@@ -35,27 +37,32 @@ def create_square(
     )
     return cuad_entity
 
+def create_sprite(
+    ecs_world: esper.World,
+    vel: pygame.Vector2,
+    position: dict,
+    surface: pygame.Surface
+) -> int:
+
+    sprite_entity = ecs_world.create_entity()
+    ecs_world.add_component(sprite_entity, CTransform(pos=pygame.Vector2(position["x"], position["y"])))
+    ecs_world.add_component(sprite_entity, CVelocity(vel))
+    ecs_world.add_component(sprite_entity, CSurface.from_surface(surface=surface))
+    return sprite_entity
+
 def create_enemy_square(
     ecs_world: esper.World,
     enemy_data: dict,
     position: dict,
 ):
-    size = pygame.Vector2(
-        enemy_data["size"]["x"], 
-        enemy_data["size"]["y"],
-    )
-    color = pygame.Color(
-        enemy_data["color"]["r"], 
-        enemy_data["color"]["g"], 
-        enemy_data["color"]["b"],
-    )
+    enemy_surface =  pygame.image.load(enemy_data["image"]).convert_alpha()
     speed = random.uniform(
         enemy_data["velocity_min"], 
         enemy_data["velocity_max"],
     )
     angle = random.uniform(0, 2 * math.pi)
     velocity = pygame.Vector2(1, 0).rotate_rad(angle) * speed
-    enemy_entity = create_square(ecs_world, size, color, velocity, position)
+    enemy_entity = create_sprite(ecs_world, velocity, position, enemy_surface)
     ecs_world.add_component(enemy_entity, CTagEnemy())
 
 def create_player_square(
@@ -63,21 +70,18 @@ def create_player_square(
     player_info: dict,
     player_1v1_info: dict,
 ) -> int:
-    size = pygame.Vector2(
-        player_info["size"]["x"], 
-        player_info["size"]["y"],
-    )
-    color = pygame.Color(
-        player_info["color"]["r"], 
-        player_info["color"]["g"], 
-        player_info["color"]["b"],
-    )
+    player_surface = pygame.image.load(player_info["image"]).convert_alpha()
+    size = player_surface.get_size()
+    frame_size = pygame.Vector2(size[0] / player_info["animations"]["number_frames"], size[1])
     velocity = pygame.Vector2(0,0)
-    position_x = player_1v1_info["position"]["x"] - size.x / 2
-    position_y = player_1v1_info["position"]["y"] - size.y / 2
+    position_x = player_1v1_info["position"]["x"] - frame_size.x / 2
+    position_y = player_1v1_info["position"]["y"] - frame_size.y / 2
     position = {"x": position_x, "y": position_y}
-    player_entity = create_square(ecs_world, size, color, velocity, position)
+    player_entity = create_sprite(ecs_world, velocity, position, player_surface)
+    ecs_world.component_for_entity(player_entity, CSurface).size = frame_size
     ecs_world.add_component(player_entity, CTagPlayer())
+    ecs_world.add_component(player_entity, CAnimation(player_info["animations"]))
+    ecs_world.add_component(player_entity, CPlayerState())
     return player_entity
 
 def create_bullet(
@@ -86,21 +90,14 @@ def create_bullet(
     spawn_center: pygame.Vector2,
     direction: pygame.Vector2,
 ) -> int:
-    size = pygame.Vector2(
-        bullet_data["size"]["x"],
-        bullet_data["size"]["y"],
-    )
-    color = pygame.Color(
-        bullet_data["color"]["r"],
-        bullet_data["color"]["g"],
-        bullet_data["color"]["b"],
-    )
+    bullet_surface = pygame.image.load(bullet_data["image"]).convert_alpha()
     velocity = direction.normalize() * bullet_data["velocity"]
+    size = pygame.Vector2(bullet_surface.get_width(), bullet_surface.get_height())
     position = {
         "x": spawn_center.x - size.x / 2,
         "y": spawn_center.y - size.y / 2,
     }
-    bullet_entity = create_square(ecs_world, size, color, velocity, position)
+    bullet_entity = create_sprite(ecs_world, velocity, position, bullet_surface)
     ecs_world.add_component(bullet_entity, CTagBullet())
     return bullet_entity
 
