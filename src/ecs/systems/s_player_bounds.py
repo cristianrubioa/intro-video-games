@@ -14,7 +14,5 @@ def system_player_bounds(world: esper.World, screen: pygame.Surface):
     c_s:CSurface
 
     for entity, (c_t, c_s, c_p) in components:
-        cuad_rect = c_s.surf.get_rect(topleft=c_t.pos)
-        cuad_rect.clamp_ip(screen_rect)
-        c_t.pos.x = cuad_rect.x
-        c_t.pos.y = cuad_rect.y
+        c_t.pos.x = max(screen_rect.left, min(c_t.pos.x, screen_rect.right - c_s.area.w))
+        c_t.pos.y = max(screen_rect.top, min(c_t.pos.y, screen_rect.bottom - c_s.area.h))
