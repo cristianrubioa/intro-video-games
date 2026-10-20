@@ -1,28 +1,36 @@
 {
     "SmallA": {
-        "size": {
-            "x": 10,
-            "y": 10
-        },
-        "color": {
-            "r": 255,
-            "g": 255,
-            "b": 255
-        },
+        "image": "assets/img/asteroid_01.png",
         "velocity_min": 25,
         "velocity_max": 26
     },
     "SmallB": {
-        "size": {
-            "x": 10,
-            "y": 10
-        },
-        "color": {
-            "r": 255,
-            "g": 100,
-            "b": 255
-        },
+        "image": "assets/img/asteroid_02.png",
         "velocity_min": 25,
         "velocity_max": 26
+    },
+    "Hunter": {
+        "image": "assets/img/enemy.png",
+        "animations": {
+            "number_frames": 6,
+            "list": [
+                {
+                    "name": "MOVE",
+                    "start": 0,
+                    "end": 5,
+                    "framerate": 10
+                },
+                {
+                    "name": "IDLE",
+                    "start": 0,
+                    "end": 0,
+                    "framerate": 1
+                }
+            ]
+        },
+        "velocity_chase": 60,
+        "velocity_return": 80,
+        "distance_start_chase": 60,
+        "distance_start_return": 120
     }
 }

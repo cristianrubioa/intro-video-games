@@ -22,9 +22,11 @@ class AnimationData:
         name: str,
         start: int,
         end: int,
-        framerate: float
+        framerate: float,
+        loop: bool = True,
     ) -> None:
         self.name = name
         self.start = start
         self.end = end
         self.framerate = 1.0 / framerate
+        self.loop = loop

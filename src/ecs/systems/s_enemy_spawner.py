@@ -1,9 +1,8 @@
 import esper
 
-from src.create.prefab_creator import create_enemy_square
+from src.create.prefab_creator import create_enemy
 from src.ecs.components.c_enemy_spawner import CEnemySpawner
 
-# ponytail: tolerancia para que la suma de delta_time en coma flotante no retrase un evento un frame
 TIME_TOLERANCE = 1e-6
 
 
@@ -20,4 +19,4 @@ def system_enemy_spawner(world: esper.World, delta_time: float, enemies: dict):
                 if event["enemy_type"] not in enemies:
                     raise ValueError(f"Tipo de enemigo no definido en enemies.json: {event['enemy_type']}")
                 event["fired"] = True
-                create_enemy_square(world, enemies[event["enemy_type"]], event["position"])
+                create_enemy(world, enemies[event["enemy_type"]], event["position"])

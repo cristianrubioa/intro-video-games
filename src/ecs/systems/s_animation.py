@@ -14,7 +14,10 @@ def system_animation(word: esper.World, delta_time: float):
             c_a.curr_frame += 1
 
             if c_a.curr_frame > c_a.animations_list[c_a.curr_anim].end:
-                c_a.curr_frame = c_a.animations_list[c_a.curr_anim].start
+                if c_a.animations_list[c_a.curr_anim].loop:
+                    c_a.curr_frame = c_a.animations_list[c_a.curr_anim].start
+                else:
+                    c_a.curr_frame = c_a.animations_list[c_a.curr_anim].end
 
             rect_surf = c_s.surf.get_rect()
             c_s.area.w = rect_surf.w / c_a.number_frames

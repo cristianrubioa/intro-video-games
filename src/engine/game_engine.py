@@ -18,7 +18,9 @@ from src.ecs.systems.s_player_bounds import system_player_bounds
 from src.ecs.systems.s_bullet_bounds import system_bullet_bounds
 from src.ecs.systems.s_collision_bullet_enemy import system_collision_bullet_enemy
 from src.ecs.systems.s_animation import system_animation
-from src.ecs.systems.s_player_state import system_player_state
+from src.ecs.systems.s_movement_anim import system_movement_anim
+from src.ecs.systems.s_hunter_state import system_hunter_state
+from src.ecs.systems.s_explosion_cleanup import system_explosion_cleanup
 
 from src.ecs.components.c_velocity import CVelocity
 from src.ecs.components.c_transform import CTransform
@@ -28,7 +30,7 @@ from src.ecs.components.c_input_command import CInputCommand
 from src.ecs.components.c_input_command import CommandPhase
 
 
-CONFIG_DIR = "assets/cfg/cfg_00"
+CONFIG_DIR = "assets/cfg/cfg_verif"
 
 
 class GameEngine:
@@ -43,6 +45,7 @@ class GameEngine:
         self.level = self._load_json("level_01.json")
         self.player = self._load_json("player.json")
         self.bullet = self._load_json("bullet.json")
+        self.explosion = self._load_json("explosion.json")
 
         self.screen = pygame.display.set_mode(
             (window["size"]["w"], window["size"]["h"]), pygame.SCALED
@@ -88,17 +91,19 @@ class GameEngine:
 
     def _update(self):
         system_enemy_spawner(self.ecs_world, self.delta_time, self.enemies)
+        system_hunter_state(self.ecs_world, self.player_entity)
         system_movement(self.ecs_world, self.delta_time)
         
-        system_player_state(self.ecs_world)
+        system_movement_anim(self.ecs_world)
 
         system_screen_bounce(self.ecs_world, self.screen)
         system_player_bounds(self.ecs_world, self.screen)
         system_bullet_bounds(self.ecs_world, self.screen)
-        system_collisions_player_enemy(self.ecs_world, self.player_entity, self.level)
-        system_collision_bullet_enemy(self.ecs_world)
-        
+        system_collisions_player_enemy(self.ecs_world, self.player_entity, self.level, self.explosion)
+        system_collision_bullet_enemy(self.ecs_world, self.explosion)
+
         system_animation(self.ecs_world, self.delta_time)
+        system_explosion_cleanup(self.ecs_world)
         self.ecs_world._clear_dead_entities()
 
     def _draw(self):

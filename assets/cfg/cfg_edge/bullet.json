@@ -1,12 +1,4 @@
 {
-    "size": {
-        "x": 6,
-        "y": 6
-    },
-    "color": {
-        "r": 255,
-        "g": 165,
-        "b": 0
-    },
+    "image": "assets/img/bullet.png",
     "velocity": 120
 }

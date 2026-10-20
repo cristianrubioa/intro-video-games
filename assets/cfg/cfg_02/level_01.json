@@ -9,6 +9,14 @@
     "enemy_spawn_events": [
         {
             "time": 0,
+            "enemy_type": "Hunter",
+            "position": {
+                "x": 280,
+                "y": 150
+            }
+        },
+        {
+            "time": 0,
             "enemy_type": "SmallA",
             "position": {
                 "x": 50,

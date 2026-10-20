@@ -11,9 +11,11 @@ from src.ecs.components.c_velocity import CVelocity
 from src.ecs.components.tags.c_tag_enemy import CTagEnemy
 from src.ecs.components.tags.c_tag_player import CTagPlayer
 from src.ecs.components.tags.c_tag_bullet import CTagBullet
+from src.ecs.components.tags.c_tag_explosion import CTagExplosion
 from src.ecs.components.c_input_command import CInputCommand
 from src.ecs.components.c_animation import CAnimation
-from src.ecs.components.c_player_state import CPlayerState
+from src.ecs.components.c_movement_anim import CMovementAnim
+from src.ecs.components.c_hunter import CHunter
 
 def create_square(
     ecs_world: esper.World,
@@ -50,6 +52,16 @@ def create_sprite(
     ecs_world.add_component(sprite_entity, CSurface.from_surface(surface=surface))
     return sprite_entity
 
+def create_enemy(
+    ecs_world: esper.World,
+    enemy_data: dict,
+    position: dict,
+):
+    if "velocity_chase" in enemy_data:
+        create_enemy_hunter(ecs_world, enemy_data, position)
+    else:
+        create_enemy_square(ecs_world, enemy_data, position)
+
 def create_enemy_square(
     ecs_world: esper.World,
     enemy_data: dict,
@@ -57,13 +69,36 @@ def create_enemy_square(
 ):
     enemy_surface =  pygame.image.load(enemy_data["image"]).convert_alpha()
     speed = random.uniform(
-        enemy_data["velocity_min"], 
+        enemy_data["velocity_min"],
         enemy_data["velocity_max"],
     )
     angle = random.uniform(0, 2 * math.pi)
     velocity = pygame.Vector2(1, 0).rotate_rad(angle) * speed
     enemy_entity = create_sprite(ecs_world, velocity, position, enemy_surface)
     ecs_world.add_component(enemy_entity, CTagEnemy())
+
+def create_enemy_hunter(
+    ecs_world: esper.World,
+    enemy_data: dict,
+    position: dict,
+):
+    enemy_surface = pygame.image.load(enemy_data["image"]).convert_alpha()
+    velocity = pygame.Vector2(0, 0)
+    enemy_entity = create_sprite(ecs_world, velocity, position, enemy_surface)
+    ecs_world.add_component(enemy_entity, CTagEnemy())
+    ecs_world.add_component(
+        enemy_entity,
+        CHunter(
+            origin=pygame.Vector2(position["x"], position["y"]),
+            distance_start_chase=enemy_data["distance_start_chase"],
+            distance_start_return=enemy_data["distance_start_return"],
+            velocity_chase=enemy_data["velocity_chase"],
+            velocity_return=enemy_data["velocity_return"],
+        ),
+    )
+    if "animations" in enemy_data:
+        ecs_world.add_component(enemy_entity, CAnimation(enemy_data["animations"]))
+        ecs_world.add_component(enemy_entity, CMovementAnim())
 
 def create_player_square(
     ecs_world: esper.World,
@@ -81,7 +116,7 @@ def create_player_square(
     ecs_world.component_for_entity(player_entity, CSurface).size = frame_size
     ecs_world.add_component(player_entity, CTagPlayer())
     ecs_world.add_component(player_entity, CAnimation(player_info["animations"]))
-    ecs_world.add_component(player_entity, CPlayerState())
+    ecs_world.add_component(player_entity, CMovementAnim())
     return player_entity
 
 def create_bullet(
@@ -100,6 +135,26 @@ def create_bullet(
     bullet_entity = create_sprite(ecs_world, velocity, position, bullet_surface)
     ecs_world.add_component(bullet_entity, CTagBullet())
     return bullet_entity
+
+def create_explosion(
+    ecs_world: esper.World,
+    explosion_data: dict,
+    center: pygame.Vector2,
+) -> int:
+    explosion_surface = pygame.image.load(explosion_data["image"]).convert_alpha()
+    frame_w = explosion_surface.get_width() / explosion_data["animations"]["number_frames"]
+    frame_h = explosion_surface.get_height()
+    position = {
+        "x": center.x - frame_w / 2,
+        "y": center.y - frame_h / 2,
+    }
+    explosion_entity = create_sprite(ecs_world, pygame.Vector2(0, 0), position, explosion_surface)
+    c_animation = CAnimation(explosion_data["animations"])
+    for anim in c_animation.animations_list:
+        anim.loop = False
+    ecs_world.add_component(explosion_entity, c_animation)
+    ecs_world.add_component(explosion_entity, CTagExplosion())
+    return explosion_entity
 
 def create_enemy_spawner(ecs_world: esper.World, level_data: dict):
     events = [{**event, "fired": False} for event in level_data["enemy_spawn_events"]]
