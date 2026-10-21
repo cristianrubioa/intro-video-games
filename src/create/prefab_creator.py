@@ -17,28 +17,6 @@ from src.ecs.components.c_animation import CAnimation
 from src.ecs.components.c_movement_anim import CMovementAnim
 from src.ecs.components.c_hunter import CHunter
 
-def create_square(
-    ecs_world: esper.World,
-    size: pygame.Vector2,
-    col: pygame.Color,
-    vel: pygame.Vector2,
-    position: dict,
-) -> int:
-    cuad_entity = ecs_world.create_entity()
-    ecs_world.add_component(
-        cuad_entity,
-        CSurface(size=size, color=col),
-    )
-    ecs_world.add_component(
-        cuad_entity,
-        CTransform(pos=pygame.Vector2(position["x"], position["y"])),
-    )
-    ecs_world.add_component(
-        cuad_entity,
-        CVelocity(vel=vel),
-    )
-    return cuad_entity
-
 def create_sprite(
     ecs_world: esper.World,
     vel: pygame.Vector2,

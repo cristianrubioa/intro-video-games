@@ -25,7 +25,7 @@ def _do_idle_state(
     c_a: CAnimation,
     c_m: CMovementAnim
 ):
-    _set_animation(c_a, 1)
+    _set_animation(c_a, "IDLE")
     if c_v.vel.magnitude_squared() > 0:
         c_m.state = MovementAnimState.MOVE
 
@@ -34,14 +34,21 @@ def _do_move_state(
     c_a: CAnimation,
     c_m: CMovementAnim
 ):
-    _set_animation(c_a, 0)
+    _set_animation(c_a, "MOVE")
     if c_v.vel.magnitude_squared() <= 0:
             c_m.state = MovementAnimState.IDLE
 
-def _set_animation(c_a: CAnimation, num_anim: int):
+def _set_animation(c_a: CAnimation, name: str):
+    num_anim = _anim_index(c_a, name)
     if c_a.curr_anim == num_anim:
         return
 
     c_a.curr_anim = num_anim
     c_a.curr_anim_time = 0
     c_a.curr_frame = c_a.animations_list[c_a.curr_anim].start
+
+def _anim_index(c_a: CAnimation, name: str) -> int:
+    for index, anim in enumerate(c_a.animations_list):
+        if anim.name == name:
+            return index
+    raise ValueError(name)
