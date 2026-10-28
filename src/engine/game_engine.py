@@ -6,6 +6,7 @@ from src.create.prefab_creator import create_enemy_spawner
 from src.create.prefab_creator import create_player_square
 from src.create.prefab_creator import create_input_player
 from src.create.prefab_creator import create_bullet
+from src.create.prefab_creator import create_text
 
 from src.ecs.systems.s_enemy_spawner import system_enemy_spawner
 from src.ecs.systems.s_movement import system_movement
@@ -47,6 +48,7 @@ class GameEngine:
         self.player = ServiceLocator.configs_service.get(f"{CONFIG_DIR}/player.json")
         self.bullet = ServiceLocator.configs_service.get(f"{CONFIG_DIR}/bullet.json")
         self.explosion = ServiceLocator.configs_service.get(f"{CONFIG_DIR}/explosion.json")
+        self.interface = ServiceLocator.configs_service.get(f"{CONFIG_DIR}/interface.json")
 
         self.screen = pygame.display.set_mode(
             (window["size"]["w"], window["size"]["h"]), pygame.SCALED
@@ -76,6 +78,20 @@ class GameEngine:
         self.player_c_v = self.ecs_world.component_for_entity(self.player_entity, CVelocity)
         create_enemy_spawner(self.ecs_world, self.level)
         create_input_player(self.ecs_world)
+        self._create_static_texts()
+
+    def _create_static_texts(self):
+        font_path = self.interface["font"]
+        for key in ("title", "special_hint"):
+            text_cfg = self.interface["texts"][key]
+            font = ServiceLocator.fonts_service.get(font_path, text_cfg["size"])
+            width, height = font.size(text_cfg["text"])
+            position = {"x": (self.screen.get_width() - width) / 2, "y": 0}
+            if key == "title":
+                position["y"] = 6
+            else:
+                position["y"] = self.screen.get_height() - height - 4
+            create_text(self.ecs_world, text_cfg["text"], font, text_cfg["color"], position)
 
     def _calculate_time(self):
         self.clock.tick(self.framerate)

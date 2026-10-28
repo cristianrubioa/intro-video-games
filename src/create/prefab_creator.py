@@ -139,6 +139,18 @@ def create_explosion(
     ServiceLocator.sounds_service.play(explosion_data["sound"])
     return explosion_entity
 
+def create_text(
+    ecs_world: esper.World,
+    text: str,
+    font: pygame.font.Font,
+    color: pygame.Color,
+    position: dict,
+) -> int:
+    text_entity = ecs_world.create_entity()
+    ecs_world.add_component(text_entity, CTransform(pos=pygame.Vector2(position["x"], position["y"])))
+    ecs_world.add_component(text_entity, CSurface.from_text(text, font, color))
+    return text_entity
+
 def create_enemy_spawner(ecs_world: esper.World, level_data: dict):
     events = [{**event, "fired": False} for event in level_data["enemy_spawn_events"]]
     spawner_entity = ecs_world.create_entity()

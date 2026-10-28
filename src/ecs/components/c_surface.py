@@ -15,6 +15,10 @@ class CSurface:
         c_surf.area = surface.get_rect()
         return c_surf
 
+    @classmethod
+    def from_text(cls, text: str, font: pygame.font.Font, color: pygame.Color):
+        return cls.from_surface(font.render(text, True, color))
+
     def get_area_relative(area: pygame.Rect, pos_topleft: pygame.Vector2):
         new_rect = area.copy()
         new_rect.topleft = pos_topleft.copy()

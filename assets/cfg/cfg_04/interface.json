@@ -1,0 +1,26 @@
+{
+    "font": "assets/fnt/PressStart2P.ttf",
+    "texts": {
+        "title": {
+            "text": "MISO SHOOTER",
+            "color": [255, 255, 255],
+            "size": 16
+        },
+        "pause": {
+            "text": "PAUSADO - Presiona P",
+            "color": [255, 80, 80],
+            "size": 10
+        },
+        "special_hint": {
+            "text": "Click derecho: ataque especial",
+            "color": [180, 180, 180],
+            "size": 8
+        }
+    },
+    "special_cooldown": {
+        "ready_text": "LISTO",
+        "ready_color": [80, 255, 120],
+        "cooldown_color": [200, 200, 80],
+        "size": 8
+    }
+}
