@@ -2,7 +2,7 @@
     "font": "assets/fnt/PressStart2P.ttf",
     "texts": {
         "title": {
-            "text": "MISO SHOOTER",
+            "text": "EJERCICIO 04",
             "color": [255, 255, 255],
             "size": 16
         },
@@ -12,15 +12,15 @@
             "size": 10
         },
         "special_hint": {
-            "text": "Click derecho: ataque especial",
-            "color": [180, 180, 180],
+            "text": "Controles: Flechas, click normal, click derecho (ataque especial)",
+            "color": [255, 255, 0],
             "size": 8
         }
     },
     "special_cooldown": {
-        "ready_text": "LISTO",
-        "ready_color": [80, 255, 120],
-        "cooldown_color": [200, 200, 80],
+        "label": "ESPECIAL",
+        "label_color": [255, 255, 255],
+        "color": [80, 255, 120],
         "size": 8
     }
 }

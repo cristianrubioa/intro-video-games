@@ -38,6 +38,8 @@ from src.engine.service_locator import ServiceLocator
 
 CONFIG_DIR = "assets/cfg/cfg_verif"
 SPECIAL_POP_DURATION = 0.15
+UI_MARGIN = 14
+UI_ROW_GAP = 8
 
 
 class GameEngine:
@@ -92,34 +94,30 @@ class GameEngine:
 
     def _create_static_texts(self):
         font_path = self.interface["font"]
-        for key in ("title", "special_hint"):
-            text_cfg = self.interface["texts"][key]
-            font = ServiceLocator.fonts_service.get(font_path, text_cfg["size"])
-            width, height = font.size(text_cfg["text"])
-            position = {"x": (self.screen.get_width() - width) / 2, "y": 0}
-            if key == "title":
-                position["y"] = 6
-            else:
-                self.hint_bottom_y = self.screen.get_height() - height - 4
-                position["y"] = self.hint_bottom_y
-            create_text(self.ecs_world, text_cfg["text"], font, text_cfg["color"], position)
+
+        title_cfg = self.interface["texts"]["title"]
+        title_font = ServiceLocator.fonts_service.get(font_path, title_cfg["size"])
+        _, title_height = title_font.size(title_cfg["text"])
+        create_text(self.ecs_world, title_cfg["text"], title_font, title_cfg["color"], {"x": UI_MARGIN, "y": UI_MARGIN})
+
+        hint_cfg = self.interface["texts"]["special_hint"]
+        hint_font = ServiceLocator.fonts_service.get(font_path, hint_cfg["size"])
+        hint_y = UI_MARGIN + title_height + UI_ROW_GAP
+        create_text(self.ecs_world, hint_cfg["text"], hint_font, hint_cfg["color"], {"x": UI_MARGIN, "y": hint_y})
 
     def _create_special_cooldown_text(self):
         cfg = self.interface["special_cooldown"]
         font = ServiceLocator.fonts_service.get(self.interface["font"], cfg["size"])
         self.special_cooldown_font = font
-        width, height = font.size(cfg["ready_text"])
-        margin = 4
-        self.special_cooldown_anchor = {
-            "x": self.screen.get_width() / 2,
-            "y": self.hint_bottom_y - margin - height / 2,
-        }
-        position = {
-            "x": self.special_cooldown_anchor["x"] - width / 2,
-            "y": self.special_cooldown_anchor["y"] - height / 2,
-        }
+        self.special_cooldown_color = cfg["color"]
+        _, value_height = font.size("100%")
+        _, label_height = font.size(cfg["label"])
+        value_y = self.screen.get_height() - value_height - UI_MARGIN
+        label_y = value_y - label_height - UI_ROW_GAP
+        create_text(self.ecs_world, cfg["label"], font, cfg["label_color"], {"x": UI_MARGIN, "y": label_y})
+        self.special_cooldown_anchor = {"x": UI_MARGIN, "y": value_y}
         self.special_cooldown_entity = create_text(
-            self.ecs_world, cfg["ready_text"], font, cfg["ready_color"], position
+            self.ecs_world, "100%", font, cfg["color"], self.special_cooldown_anchor
         )
 
     def _create_pause_text(self):
@@ -183,7 +181,8 @@ class GameEngine:
             self.special_cooldown_entity,
             self.special_cooldown_font,
             self.special_cooldown_remaining,
-            self.interface["special_cooldown"],
+            self.bullet["special"]["cooldown"],
+            self.special_cooldown_color,
             self.special_cooldown_anchor,
             pop_scale,
         )

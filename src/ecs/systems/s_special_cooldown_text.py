@@ -10,16 +10,14 @@ def system_special_cooldown_text(
     text_entity: int,
     font: pygame.font.Font,
     cooldown_remaining: float,
-    cooldown_cfg: dict,
+    cooldown_total: float,
+    color: pygame.Color,
     anchor: dict,
     pop_scale: float = 1.0,
 ):
-    if cooldown_remaining <= 0:
-        text = cooldown_cfg["ready_text"]
-        color = cooldown_cfg["ready_color"]
-    else:
-        text = f"{cooldown_remaining:.1f}"
-        color = cooldown_cfg["cooldown_color"]
+    percent = 100 if cooldown_total <= 0 else round((1 - cooldown_remaining / cooldown_total) * 100)
+    percent = max(0, min(100, percent))
+    text = f"{percent}%"
 
     surface = font.render(text, True, color)
     if pop_scale != 1.0:
@@ -29,10 +27,7 @@ def system_special_cooldown_text(
         )
 
     c_transform = world.component_for_entity(text_entity, CTransform)
-    c_transform.pos = pygame.Vector2(
-        anchor["x"] - surface.get_width() / 2,
-        anchor["y"] - surface.get_height() / 2,
-    )
+    c_transform.pos = pygame.Vector2(anchor["x"], anchor["y"])
 
     c_surface = world.component_for_entity(text_entity, CSurface)
     c_surface.surf = surface
