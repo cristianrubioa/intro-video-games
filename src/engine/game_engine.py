@@ -1,5 +1,3 @@
-import json
-
 import pygame
 import esper
 import asyncio
@@ -30,6 +28,8 @@ from src.ecs.components.tags.c_tag_bullet import CTagBullet
 from src.ecs.components.c_input_command import CInputCommand
 from src.ecs.components.c_input_command import CommandPhase
 
+from src.engine.service_locator import ServiceLocator
+
 
 CONFIG_DIR = "assets/cfg/cfg_verif"
 
@@ -41,12 +41,12 @@ class GameEngine:
         self.is_running = False
         self.delta_time = 0
 
-        window = self._load_json("window.json")
-        self.enemies = self._load_json("enemies.json")
-        self.level = self._load_json("level_01.json")
-        self.player = self._load_json("player.json")
-        self.bullet = self._load_json("bullet.json")
-        self.explosion = self._load_json("explosion.json")
+        window = ServiceLocator.configs_service.get(f"{CONFIG_DIR}/window.json")
+        self.enemies = ServiceLocator.configs_service.get(f"{CONFIG_DIR}/enemies.json")
+        self.level = ServiceLocator.configs_service.get(f"{CONFIG_DIR}/level_01.json")
+        self.player = ServiceLocator.configs_service.get(f"{CONFIG_DIR}/player.json")
+        self.bullet = ServiceLocator.configs_service.get(f"{CONFIG_DIR}/bullet.json")
+        self.explosion = ServiceLocator.configs_service.get(f"{CONFIG_DIR}/explosion.json")
 
         self.screen = pygame.display.set_mode(
             (window["size"]["w"], window["size"]["h"]), pygame.SCALED
@@ -76,10 +76,6 @@ class GameEngine:
         self.player_c_v = self.ecs_world.component_for_entity(self.player_entity, CVelocity)
         create_enemy_spawner(self.ecs_world, self.level)
         create_input_player(self.ecs_world)
-
-    def _load_json(self, file_name: str):
-        with open(f"{CONFIG_DIR}/{file_name}") as file:
-            return json.load(file)
 
     def _calculate_time(self):
         self.clock.tick(self.framerate)
