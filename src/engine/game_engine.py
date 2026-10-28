@@ -1,3 +1,5 @@
+import random
+
 import pygame
 import esper
 import asyncio
@@ -23,6 +25,7 @@ from src.ecs.systems.s_movement_anim import system_movement_anim
 from src.ecs.systems.s_hunter_state import system_hunter_state
 from src.ecs.systems.s_explosion_cleanup import system_explosion_cleanup
 from src.ecs.systems.s_special_cooldown_text import system_special_cooldown_text
+from src.ecs.systems.s_special_attack_state import system_special_attack_state
 from src.ecs.systems.s_lifetime import system_lifetime
 
 from src.ecs.components.c_velocity import CVelocity
@@ -32,14 +35,17 @@ from src.ecs.components.tags.c_tag_bullet import CTagBullet
 from src.ecs.components.tags.c_tag_bullet_special import CTagBulletSpecial
 from src.ecs.components.c_input_command import CInputCommand
 from src.ecs.components.c_input_command import CommandPhase
+from src.ecs.components.c_special_attack import CSpecialAttack
+from src.ecs.components.c_special_attack import SPECIAL_POP_DURATION
+from src.ecs.components.c_special_attack import SPECIAL_SHAKE_DURATION
 
 from src.engine.service_locator import ServiceLocator
 
 
 CONFIG_DIR = "assets/cfg/cfg_verif"
-SPECIAL_POP_DURATION = 0.15
 UI_MARGIN = 14
 UI_ROW_GAP = 8
+SPECIAL_SHAKE_MAGNITUDE = 4
 
 
 class GameEngine:
@@ -49,8 +55,6 @@ class GameEngine:
         self.is_running = False
         self.delta_time = 0
         self.paused = False
-        self.special_cooldown_remaining = 0.0
-        self.special_pop_timer = 0.0
 
         window = ServiceLocator.configs_service.get(f"{CONFIG_DIR}/window.json")
         self.enemies = ServiceLocator.configs_service.get(f"{CONFIG_DIR}/enemies.json")
@@ -86,6 +90,7 @@ class GameEngine:
     def _create(self):
         self.player_entity = create_player_square(self.ecs_world, self.player, self.level["player_spawn"])
         self.player_c_v = self.ecs_world.component_for_entity(self.player_entity, CVelocity)
+        self.ecs_world.add_component(self.player_entity, CSpecialAttack(self.bullet["special"]["cooldown"]))
         create_enemy_spawner(self.ecs_world, self.level)
         create_input_player(self.ecs_world)
         self._create_static_texts()
@@ -162,26 +167,20 @@ class GameEngine:
         system_explosion_cleanup(self.ecs_world)
         self.ecs_world._clear_dead_entities()
 
-        self._update_special_cooldown()
+        system_special_attack_state(self.ecs_world, self.delta_time)
+        self._update_special_cooldown_text()
 
-    def _update_special_cooldown(self):
-        was_ready = self.special_cooldown_remaining <= 0
-        if self.special_cooldown_remaining > 0:
-            self.special_cooldown_remaining = max(0.0, self.special_cooldown_remaining - self.delta_time)
-        is_ready = self.special_cooldown_remaining <= 0
-
-        if is_ready and not was_ready:
-            self.special_pop_timer = SPECIAL_POP_DURATION
-        elif self.special_pop_timer > 0:
-            self.special_pop_timer = max(0.0, self.special_pop_timer - self.delta_time)
-
-        pop_scale = 1.0 + 0.3 * (self.special_pop_timer / SPECIAL_POP_DURATION)
+    def _update_special_cooldown_text(self):
+        c_special = self.ecs_world.component_for_entity(self.player_entity, CSpecialAttack)
+        pop_scale = 1.0
+        if c_special.pop_timer > 0:
+            pop_scale = 1.0 + 0.3 * (c_special.pop_timer / SPECIAL_POP_DURATION)
         system_special_cooldown_text(
             self.ecs_world,
             self.special_cooldown_entity,
             self.special_cooldown_font,
-            self.special_cooldown_remaining,
-            self.bullet["special"]["cooldown"],
+            c_special.cooldown_remaining,
+            c_special.cooldown_total,
             self.special_cooldown_color,
             self.special_cooldown_anchor,
             pop_scale,
@@ -189,8 +188,15 @@ class GameEngine:
 
     def _draw(self):
         self.screen.fill(self.bg_color)
-        system_rendering(self.ecs_world, self.screen)
+        system_rendering(self.ecs_world, self.screen, self._special_shake_offset())
         pygame.display.flip()
+
+    def _special_shake_offset(self) -> pygame.Vector2:
+        c_special = self.ecs_world.component_for_entity(self.player_entity, CSpecialAttack)
+        if c_special.shake_timer <= 0:
+            return pygame.Vector2(0, 0)
+        magnitude = SPECIAL_SHAKE_MAGNITUDE * (c_special.shake_timer / SPECIAL_SHAKE_DURATION)
+        return pygame.Vector2(random.uniform(-magnitude, magnitude), random.uniform(-magnitude, magnitude))
 
     def _clean(self):
         self.ecs_world.clear_database()
@@ -251,7 +257,8 @@ class GameEngine:
             create_bullet(self.ecs_world, self.bullet, center, direction)
 
     def _fire_special_bullet(self):
-        if self.paused or self.special_cooldown_remaining > 0:
+        c_special = self.ecs_world.component_for_entity(self.player_entity, CSpecialAttack)
+        if self.paused or c_special.cooldown_remaining > 0:
             return
         target = self._find_active_normal_bullet()
         if target is None:
@@ -262,7 +269,8 @@ class GameEngine:
         special_data = self.bullet["special"]
         self.ecs_world.delete_entity(entity)
         create_bullet_burst(self.ecs_world, special_data, center, direction)
-        self.special_cooldown_remaining = special_data["cooldown"]
+        c_special.cooldown_remaining = c_special.cooldown_total
+        c_special.shake_timer = SPECIAL_SHAKE_DURATION
 
     def _find_active_normal_bullet(self):
         for entity, (c_t, c_v, c_s, _) in self.ecs_world.get_components(
