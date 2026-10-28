@@ -149,21 +149,25 @@ class GameEngine:
         if c_input.name == "PLAYER_LEFT":
             if c_input.phase == CommandPhase.START:
                 self.player_c_v.vel.x -= self.player["input_velocity"]
+                self._play_move_sound()
             elif c_input.phase == CommandPhase.END:
                 self.player_c_v.vel.x += self.player["input_velocity"]
         elif c_input.name == "PLAYER_RIGHT":
             if c_input.phase == CommandPhase.START:
                 self.player_c_v.vel.x += self.player["input_velocity"]
+                self._play_move_sound()
             elif c_input.phase == CommandPhase.END:
                 self.player_c_v.vel.x -= self.player["input_velocity"]
         elif c_input.name == "PLAYER_UP":
             if c_input.phase == CommandPhase.START:
                 self.player_c_v.vel.y -= self.player["input_velocity"]
+                self._play_move_sound()
             elif c_input.phase == CommandPhase.END:
                 self.player_c_v.vel.y += self.player["input_velocity"]
         elif c_input.name == "PLAYER_DOWN":
             if c_input.phase == CommandPhase.START:
                 self.player_c_v.vel.y += self.player["input_velocity"]
+                self._play_move_sound()
             elif c_input.phase == CommandPhase.END:
                 self.player_c_v.vel.y -= self.player["input_velocity"]
         elif c_input.name == "PLAYER_FIRE":
@@ -172,6 +176,10 @@ class GameEngine:
         elif c_input.name == "TOGGLE_PAUSE":
             if c_input.phase == CommandPhase.START:
                 self._toggle_pause()
+
+    def _play_move_sound(self):
+        if not self.paused:
+            ServiceLocator.sounds_service.play(self.player["sound_move"])
 
     def _toggle_pause(self):
         self.paused = not self.paused

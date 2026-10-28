@@ -16,3 +16,4 @@ class CHunter:
         self.velocity_chase = velocity_chase
         self.velocity_return = velocity_return
         self.sound_chase = sound_chase
+        self.is_chasing = False
