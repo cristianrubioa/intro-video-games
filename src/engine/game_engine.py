@@ -41,6 +41,7 @@ class GameEngine:
         self.clock = pygame.time.Clock()
         self.is_running = False
         self.delta_time = 0
+        self.paused = False
 
         window = ServiceLocator.configs_service.get(f"{CONFIG_DIR}/window.json")
         self.enemies = ServiceLocator.configs_service.get(f"{CONFIG_DIR}/enemies.json")
@@ -79,6 +80,7 @@ class GameEngine:
         create_enemy_spawner(self.ecs_world, self.level)
         create_input_player(self.ecs_world)
         self._create_static_texts()
+        self._create_pause_text()
 
     def _create_static_texts(self):
         font_path = self.interface["font"]
@@ -93,6 +95,18 @@ class GameEngine:
                 position["y"] = self.screen.get_height() - height - 4
             create_text(self.ecs_world, text_cfg["text"], font, text_cfg["color"], position)
 
+    def _create_pause_text(self):
+        pause_cfg = self.interface["texts"]["pause"]
+        font = ServiceLocator.fonts_service.get(self.interface["font"], pause_cfg["size"])
+        width, height = font.size(pause_cfg["text"])
+        self.pause_text_center = {
+            "x": (self.screen.get_width() - width) / 2,
+            "y": (self.screen.get_height() - height) / 2,
+        }
+        self.pause_text_hidden = {"x": self.pause_text_center["x"], "y": -height - 10}
+        pause_entity = create_text(self.ecs_world, pause_cfg["text"], font, pause_cfg["color"], self.pause_text_hidden)
+        self.pause_text_transform = self.ecs_world.component_for_entity(pause_entity, CTransform)
+
     def _calculate_time(self):
         self.clock.tick(self.framerate)
         self.delta_time = self.clock.get_time() / 1000.0
@@ -104,6 +118,8 @@ class GameEngine:
                 self.is_running = False
 
     def _update(self):
+        if self.paused:
+            return
         system_enemy_spawner(self.ecs_world, self.delta_time, self.enemies)
         system_hunter_state(self.ecs_world, self.player_entity)
         system_movement(self.ecs_world, self.delta_time)
@@ -153,6 +169,14 @@ class GameEngine:
         elif c_input.name == "PLAYER_FIRE":
             if c_input.phase == CommandPhase.START:
                 self._fire_bullet()
+        elif c_input.name == "TOGGLE_PAUSE":
+            if c_input.phase == CommandPhase.START:
+                self._toggle_pause()
+
+    def _toggle_pause(self):
+        self.paused = not self.paused
+        target = self.pause_text_center if self.paused else self.pause_text_hidden
+        self.pause_text_transform.pos = pygame.Vector2(target["x"], target["y"])
 
     def _fire_bullet(self):
         if len(list(self.ecs_world.get_component(CTagBullet))) >= self.level["player_spawn"]["max_bullets"]:

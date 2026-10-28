@@ -186,3 +186,9 @@ def create_input_player(ecs_world: esper.World):
             input_fire,
             CInputCommand("PLAYER_FIRE", pygame.BUTTON_LEFT)
         )
+
+    input_toggle_pause = ecs_world.create_entity()
+    ecs_world.add_component(
+            input_toggle_pause,
+            CInputCommand("TOGGLE_PAUSE", pygame.K_p)
+        )
