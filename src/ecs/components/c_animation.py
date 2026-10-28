@@ -12,9 +12,11 @@ class CAnimation:
                 anim["framerate"]
             )
             self.animations_list.append(anim_data)
-            self.curr_anim = 0
-            self.curr_anim_time = 0
-            self.curr_frame = self.animations_list[self.curr_anim].start
+        self.curr_anim = next(
+            (i for i, a in enumerate(self.animations_list) if a.name == "IDLE"), 0
+        )
+        self.curr_anim_time = 0
+        self.curr_frame = self.animations_list[self.curr_anim].start
 
 class AnimationData:
     def __init__(
