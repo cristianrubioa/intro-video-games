@@ -1,10 +1,12 @@
 {
     "SmallA": {
+        "sound": "assets/snd/asteroid.ogg",
         "image": "assets/img/asteroid_01.png",
         "velocity_min": 25,
         "velocity_max": 26
     },
     "SmallB": {
+        "sound": "assets/snd/asteroid.ogg",
         "image": "assets/img/asteroid_02.png",
         "velocity_min": 25,
         "velocity_max": 26
@@ -31,6 +33,7 @@
         "velocity_chase": 60,
         "velocity_return": 80,
         "distance_start_chase": 60,
-        "distance_start_return": 120
+        "distance_start_return": 120,
+        "sound_chase": "assets/snd/ufo.ogg"
     }
 }

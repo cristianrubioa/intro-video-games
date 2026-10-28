@@ -1,10 +1,12 @@
 {
     "Zero": {
+        "sound": "assets/snd/asteroid.ogg",
         "image": "assets/img/asteroid_01.png",
         "velocity_min": 0,
         "velocity_max": 0
     },
     "Big": {
+        "sound": "assets/snd/asteroid.ogg",
         "image": "assets/img/asteroid_04.png",
         "velocity_min": 50,
         "velocity_max": 50
@@ -31,6 +33,7 @@
         "velocity_chase": 40,
         "velocity_return": 50,
         "distance_start_chase": 80,
-        "distance_start_return": 0
+        "distance_start_return": 0,
+        "sound_chase": "assets/snd/ufo.ogg"
     }
 }
