@@ -1,5 +1,13 @@
 {
     "sound": "assets/snd/laser.ogg",
     "image": "assets/img/bullet.png",
-    "velocity": 35
+    "velocity": 35,
+    "special": {
+        "sound": "assets/snd/laser_special.ogg",
+        "image": "assets/img/bullet_especial.png",
+        "velocity": 35,
+        "cooldown": 2.5,
+        "split_count": 4,
+        "lifetime": 0.25
+    }
 }

@@ -11,6 +11,8 @@ from src.ecs.components.c_velocity import CVelocity
 from src.ecs.components.tags.c_tag_enemy import CTagEnemy
 from src.ecs.components.tags.c_tag_player import CTagPlayer
 from src.ecs.components.tags.c_tag_bullet import CTagBullet
+from src.ecs.components.tags.c_tag_bullet_special import CTagBulletSpecial
+from src.ecs.components.c_lifetime import CLifetime
 from src.ecs.components.tags.c_tag_explosion import CTagExplosion
 from src.ecs.components.c_input_command import CInputCommand
 from src.ecs.components.c_animation import CAnimation
@@ -105,6 +107,8 @@ def create_bullet(
     bullet_data: dict,
     spawn_center: pygame.Vector2,
     direction: pygame.Vector2,
+    special: bool = False,
+    lifetime: float = None,
 ) -> int:
     bullet_surface = ServiceLocator.images_service.get(bullet_data["image"])
     velocity = direction.normalize() * bullet_data["velocity"]
@@ -115,8 +119,27 @@ def create_bullet(
     }
     bullet_entity = create_sprite(ecs_world, velocity, position, bullet_surface)
     ecs_world.add_component(bullet_entity, CTagBullet())
+    if special:
+        ecs_world.add_component(bullet_entity, CTagBulletSpecial())
+    if lifetime is not None:
+        ecs_world.add_component(bullet_entity, CLifetime(lifetime))
     ServiceLocator.sounds_service.play(bullet_data["sound"])
     return bullet_entity
+
+BURST_ANGLES_DEG = (45, -45, 135, -135)
+BURST_SPAWN_OFFSET = 10
+
+def create_bullet_burst(
+    ecs_world: esper.World,
+    bullet_data: dict,
+    center: pygame.Vector2,
+    base_direction: pygame.Vector2,
+) -> None:
+    lifetime = bullet_data.get("lifetime")
+    for angle in BURST_ANGLES_DEG:
+        direction = base_direction.rotate(angle)
+        spawn_center = center + direction.normalize() * BURST_SPAWN_OFFSET
+        create_bullet(ecs_world, bullet_data, spawn_center, direction, special=True, lifetime=lifetime)
 
 def create_explosion(
     ecs_world: esper.World,
@@ -185,6 +208,12 @@ def create_input_player(ecs_world: esper.World):
     ecs_world.add_component(
             input_fire,
             CInputCommand("PLAYER_FIRE", pygame.BUTTON_LEFT)
+        )
+
+    input_fire_special = ecs_world.create_entity()
+    ecs_world.add_component(
+            input_fire_special,
+            CInputCommand("PLAYER_FIRE_SPECIAL", pygame.BUTTON_RIGHT)
         )
 
     input_toggle_pause = ecs_world.create_entity()

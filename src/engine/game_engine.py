@@ -6,6 +6,7 @@ from src.create.prefab_creator import create_enemy_spawner
 from src.create.prefab_creator import create_player_square
 from src.create.prefab_creator import create_input_player
 from src.create.prefab_creator import create_bullet
+from src.create.prefab_creator import create_bullet_burst
 from src.create.prefab_creator import create_text
 
 from src.ecs.systems.s_enemy_spawner import system_enemy_spawner
@@ -21,11 +22,14 @@ from src.ecs.systems.s_animation import system_animation
 from src.ecs.systems.s_movement_anim import system_movement_anim
 from src.ecs.systems.s_hunter_state import system_hunter_state
 from src.ecs.systems.s_explosion_cleanup import system_explosion_cleanup
+from src.ecs.systems.s_special_cooldown_text import system_special_cooldown_text
+from src.ecs.systems.s_lifetime import system_lifetime
 
 from src.ecs.components.c_velocity import CVelocity
 from src.ecs.components.c_transform import CTransform
 from src.ecs.components.c_surface import CSurface
 from src.ecs.components.tags.c_tag_bullet import CTagBullet
+from src.ecs.components.tags.c_tag_bullet_special import CTagBulletSpecial
 from src.ecs.components.c_input_command import CInputCommand
 from src.ecs.components.c_input_command import CommandPhase
 
@@ -33,6 +37,7 @@ from src.engine.service_locator import ServiceLocator
 
 
 CONFIG_DIR = "assets/cfg/cfg_verif"
+SPECIAL_POP_DURATION = 0.15
 
 
 class GameEngine:
@@ -42,6 +47,8 @@ class GameEngine:
         self.is_running = False
         self.delta_time = 0
         self.paused = False
+        self.special_cooldown_remaining = 0.0
+        self.special_pop_timer = 0.0
 
         window = ServiceLocator.configs_service.get(f"{CONFIG_DIR}/window.json")
         self.enemies = ServiceLocator.configs_service.get(f"{CONFIG_DIR}/enemies.json")
@@ -81,6 +88,7 @@ class GameEngine:
         create_input_player(self.ecs_world)
         self._create_static_texts()
         self._create_pause_text()
+        self._create_special_cooldown_text()
 
     def _create_static_texts(self):
         font_path = self.interface["font"]
@@ -92,8 +100,27 @@ class GameEngine:
             if key == "title":
                 position["y"] = 6
             else:
-                position["y"] = self.screen.get_height() - height - 4
+                self.hint_bottom_y = self.screen.get_height() - height - 4
+                position["y"] = self.hint_bottom_y
             create_text(self.ecs_world, text_cfg["text"], font, text_cfg["color"], position)
+
+    def _create_special_cooldown_text(self):
+        cfg = self.interface["special_cooldown"]
+        font = ServiceLocator.fonts_service.get(self.interface["font"], cfg["size"])
+        self.special_cooldown_font = font
+        width, height = font.size(cfg["ready_text"])
+        margin = 4
+        self.special_cooldown_anchor = {
+            "x": self.screen.get_width() / 2,
+            "y": self.hint_bottom_y - margin - height / 2,
+        }
+        position = {
+            "x": self.special_cooldown_anchor["x"] - width / 2,
+            "y": self.special_cooldown_anchor["y"] - height / 2,
+        }
+        self.special_cooldown_entity = create_text(
+            self.ecs_world, cfg["ready_text"], font, cfg["ready_color"], position
+        )
 
     def _create_pause_text(self):
         pause_cfg = self.interface["texts"]["pause"]
@@ -129,12 +156,37 @@ class GameEngine:
         system_screen_bounce(self.ecs_world, self.screen)
         system_player_bounds(self.ecs_world, self.screen)
         system_bullet_bounds(self.ecs_world, self.screen)
+        system_lifetime(self.ecs_world, self.delta_time)
         system_collisions_player_enemy(self.ecs_world, self.player_entity, self.level, self.explosion)
         system_collision_bullet_enemy(self.ecs_world, self.explosion)
 
         system_animation(self.ecs_world, self.delta_time)
         system_explosion_cleanup(self.ecs_world)
         self.ecs_world._clear_dead_entities()
+
+        self._update_special_cooldown()
+
+    def _update_special_cooldown(self):
+        was_ready = self.special_cooldown_remaining <= 0
+        if self.special_cooldown_remaining > 0:
+            self.special_cooldown_remaining = max(0.0, self.special_cooldown_remaining - self.delta_time)
+        is_ready = self.special_cooldown_remaining <= 0
+
+        if is_ready and not was_ready:
+            self.special_pop_timer = SPECIAL_POP_DURATION
+        elif self.special_pop_timer > 0:
+            self.special_pop_timer = max(0.0, self.special_pop_timer - self.delta_time)
+
+        pop_scale = 1.0 + 0.3 * (self.special_pop_timer / SPECIAL_POP_DURATION)
+        system_special_cooldown_text(
+            self.ecs_world,
+            self.special_cooldown_entity,
+            self.special_cooldown_font,
+            self.special_cooldown_remaining,
+            self.interface["special_cooldown"],
+            self.special_cooldown_anchor,
+            pop_scale,
+        )
 
     def _draw(self):
         self.screen.fill(self.bg_color)
@@ -173,6 +225,9 @@ class GameEngine:
         elif c_input.name == "PLAYER_FIRE":
             if c_input.phase == CommandPhase.START:
                 self._fire_bullet()
+        elif c_input.name == "PLAYER_FIRE_SPECIAL":
+            if c_input.phase == CommandPhase.START:
+                self._fire_special_bullet()
         elif c_input.name == "TOGGLE_PAUSE":
             if c_input.phase == CommandPhase.START:
                 self._toggle_pause()
@@ -195,3 +250,25 @@ class GameEngine:
         direction = pygame.Vector2(pygame.mouse.get_pos()) - center
         if direction.length_squared() > 0:
             create_bullet(self.ecs_world, self.bullet, center, direction)
+
+    def _fire_special_bullet(self):
+        if self.paused or self.special_cooldown_remaining > 0:
+            return
+        target = self._find_active_normal_bullet()
+        if target is None:
+            return
+        entity, c_t, c_v, c_s = target
+        center = c_t.pos + c_s.size / 2
+        direction = pygame.Vector2(c_v.vel)
+        special_data = self.bullet["special"]
+        self.ecs_world.delete_entity(entity)
+        create_bullet_burst(self.ecs_world, special_data, center, direction)
+        self.special_cooldown_remaining = special_data["cooldown"]
+
+    def _find_active_normal_bullet(self):
+        for entity, (c_t, c_v, c_s, _) in self.ecs_world.get_components(
+            CTransform, CVelocity, CSurface, CTagBullet
+        ):
+            if not self.ecs_world.has_component(entity, CTagBulletSpecial):
+                return entity, c_t, c_v, c_s
+        return None
