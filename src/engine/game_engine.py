@@ -2,6 +2,7 @@ import json
 
 import pygame
 import esper
+import asyncio
 
 from src.create.prefab_creator import create_enemy_spawner
 from src.create.prefab_creator import create_player_square
@@ -56,7 +57,7 @@ class GameEngine:
 
         self.ecs_world = esper.World()
 
-    def run(self) -> None:
+    async def run(self) -> None:
         self._create()
         self.is_running = True
         try:
@@ -65,6 +66,7 @@ class GameEngine:
                 self._process_events()
                 self._update()
                 self._draw()
+                await asyncio.sleep(0)
         except KeyboardInterrupt:
             pass
         self._clean()
@@ -116,7 +118,6 @@ class GameEngine:
         pygame.quit()
 
     def _do_action(self, c_input: CInputCommand):
-        print(c_input.name + " " + str(c_input.phase))
         if c_input.name == "PLAYER_LEFT":
             if c_input.phase == CommandPhase.START:
                 self.player_c_v.vel.x -= self.player["input_velocity"]
